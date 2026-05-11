@@ -1,0 +1,38 @@
+name: Auto Update Hermes
+
+on:
+  schedule:
+    # 每周一检查更新
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check latest version
+        id: check
+        run: |
+          # 从 GitHub API 获取最新版本
+          LATEST=$(curl -s https://api.github.com/repos/NousResearch/hermes-agent/releases/latest | jq -r .tag_name)
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
+          
+          # 检查当前版本
+          CURRENT=$(grep 'VERSION=' install.sh | head -1 | cut -d'"' -f2)
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          
+          if [ "$LATEST" != "v$CURRENT" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create issue if update available
+        if: steps.check.outputs.update_needed == 'true'
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: "⬆️ Hermes Agent 新版本可用: ${{ steps.check.outputs.latest }}"
+          content-file: UPDATE_NOTICE.md
+          labels: update
