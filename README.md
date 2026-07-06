@@ -110,3 +110,7 @@ sudo rm -rf /root/.hermes
 ## 📄 许可证
 
 MIT License - [Nous Research](https://nousresearch.com)
+
+---
+
+> 最后更新: 2026-07-06 - 保持仓库活跃
